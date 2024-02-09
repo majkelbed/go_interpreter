@@ -1,4 +1,3 @@
-// lexer/lexer.go
 package lexer
 
 import (
@@ -15,55 +14,53 @@ type Lexer struct {
 
 var validDigit = regexp.MustCompile(`[0-9]`)
 
-// TODO: replace all this mambo jambo with a simple regexp lexer
-
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
+
 	return l
 }
 
-func (l *Lexer) NextToken() token.Token {
+func (l *Lexer) Advance() token.Token {
 	var t token.Token
 
-	// Why not add white space as case and just skip it this way?
 	l.skipWhitespace()
 
 	switch l.ch {
 	case '=':
 		next := l.peekChar()
 		if next == '>' {
-			t = newToken(token.LAMBDA, string(l.ch)+string(next))
+			t = token.New(token.LAMBDA, string(l.ch)+string(next))
 			l.readChar()
 		} else if next == '=' {
-			t = newToken(token.EQ, string(l.ch)+string(next))
+			t = token.New(token.EQ, string(l.ch)+string(next))
 			l.readChar()
 		} else {
-			t = newToken(token.ASSIGN, l.ch)
+			t = token.New(token.ASSIGN, l.ch)
 		}
 	case ';':
-		t = newToken(token.SEMICOLON, l.ch)
+		t = token.New(token.SEMICOLON, l.ch)
 	case '(':
-		t = newToken(token.LPAREN, l.ch)
+		t = token.New(token.LPAREN, l.ch)
 	case ')':
-		t = newToken(token.RPAREN, l.ch)
+		t = token.New(token.RPAREN, l.ch)
 	case ',':
-		t = newToken(token.COMMA, l.ch)
+		t = token.New(token.COMMA, l.ch)
 	case '+':
 		if l.peekChar() == '=' {
-			t = newToken(token.PLUS_EQ, l.ch)
+			t = token.New(token.PLUS_EQ, l.ch)
 			l.readChar()
 		} else {
-			t = newToken(token.PLUS, l.ch)
+			t = token.New(token.PLUS, l.ch)
 		}
 	case '{':
-		t = newToken(token.LBRACE, l.ch)
+		t = token.New(token.LBRACE, l.ch)
 	case '}':
-		t = newToken(token.RBRACE, l.ch)
+		t = token.New(token.RBRACE, l.ch)
 	case '<':
-		t = newToken(token.LT, l.ch)
+		t = token.New(token.LT, l.ch)
 	case '>':
-		t = newToken(token.GT, l.ch)
+		t = token.New(token.GT, l.ch)
 	case '"':
 		l.readChar()
 		str := ""
@@ -73,7 +70,7 @@ func (l *Lexer) NextToken() token.Token {
 			l.readChar()
 		}
 
-		t = newToken(token.STRING, str)
+		t = token.New(token.STRING, str)
 	case 0:
 		t.Literal = ""
 		t.Type = token.EOF
@@ -101,13 +98,19 @@ func (l *Lexer) NextToken() token.Token {
 			t.Literal = l.readNumber()
 			return t
 		} else {
-			t = newToken(token.ILLEGAL, l.ch)
+			t = token.New(token.ILLEGAL, l.ch)
 		}
 	}
 
 	l.readChar()
 
 	return t
+}
+
+func (l *Lexer) skipWhitespace() {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+		l.readChar()
+	}
 }
 
 func (l *Lexer) readChar() {
@@ -120,21 +123,12 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
-func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-		l.readChar()
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
 	}
-}
 
-func newToken(tokenType token.TokenType, literal interface{}) token.Token {
-	switch v := literal.(type) {
-	case string:
-		return token.Token{Type: tokenType, Literal: v}
-	case byte:
-		return token.Token{Type: tokenType, Literal: string(v)}
-	default:
-		panic(v)
-	}
+	return l.input[l.readPosition]
 }
 
 func (l *Lexer) readIdentifier() string {
@@ -147,10 +141,6 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[position:l.position]
 }
 
-func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
-}
-
 func (l *Lexer) readNumber() string {
 	position := l.position
 
@@ -159,16 +149,4 @@ func (l *Lexer) readNumber() string {
 	}
 
 	return l.input[position:l.position]
-}
-
-func isDigit(ch byte) bool {
-	return ('0' <= ch && ch <= '9') || ch == '.'
-}
-
-func (l *Lexer) peekChar() byte {
-	if l.readPosition >= len(l.input) {
-		return 0
-	}
-
-	return l.input[l.readPosition]
 }

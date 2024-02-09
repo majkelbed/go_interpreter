@@ -72,3 +72,14 @@ func LookupIdent(ident string) TokenType {
 	}
 	return IDENT
 }
+
+func New(tokenType TokenType, literal interface{}) Token {
+	switch v := literal.(type) {
+	case string:
+		return Token{Type: tokenType, Literal: v}
+	case byte:
+		return Token{Type: tokenType, Literal: string(v)}
+	default:
+		panic(v)
+	}
+}
