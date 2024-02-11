@@ -9,7 +9,7 @@ func TestNextToken(t *testing.T) {
 	input := `
 		let let_int = 123;
 
-		const const_lambda = () => {
+		let let_lambda = () => {
 			if (let_int < 100) {
 				return true;
 			} else if (let_int == 100) {
@@ -19,7 +19,7 @@ func TestNextToken(t *testing.T) {
 			}
 		};
 		
-		var var_fn = fn () {
+		let	let_fn = fn () {
 			return "some string";
 		};
 	`
@@ -33,8 +33,8 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "123"},
 		{token.SEMICOLON, ";"},
 
-		{token.CONST, "const"},
-		{token.IDENT, "const_lambda"},
+		{token.LET, "let"},
+		{token.IDENT, "let_lambda"},
 		{token.ASSIGN, "="},
 		{token.LPAREN, "("},
 		{token.RPAREN, ")"},
@@ -71,8 +71,8 @@ func TestNextToken(t *testing.T) {
 		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
 
-		{token.VAR, "var"},
-		{token.IDENT, "var_fn"},
+		{token.LET, "let"},
+		{token.IDENT, "let_fn"},
 		{token.ASSIGN, "="},
 		{token.FUNCTION, "fn"},
 		{token.LPAREN, "("},
